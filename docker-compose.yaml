@@ -1,0 +1,44 @@
+version: '3'
+
+volumes:
+  nextcloud:
+  db:
+  redis:
+
+services:
+  db:
+    image: mariadb
+    restart: always
+    command: --transaction-isolation=READ-COMMITTED --binlog-format=ROW --innodb-file-per-table=1 --skip-innodb-read-only-compressed
+    volumes:
+      - db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=stella63
+      - MYSQL_PASSWORD=stella63
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=gadase
+
+  redis:
+    image: redis
+    restart: always
+    command: redis-server --requirepass stella63
+  
+  app:
+    image: nextcloud:19.0.13
+    restart: always
+    ports:
+      - 80:80
+    links:
+      - db
+      - redis
+    volumes:
+      - nextcloud:/var/www/html
+    environment:
+      - MYSQL_PASSWORD=stella63
+      - MYSQL_DATABASE=db
+      - MYSQL_USER=gadase
+      - MYSQL_HOST=db
+      - REDIS_HOST_PASSWORD=stella63
+    depends_on:
+      - db
+      - redis
